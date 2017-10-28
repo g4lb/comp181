@@ -1,5 +1,3 @@
-(load "/home/haims/Desktop/pc.scm") 
-
 (define <whitespace>
   (const
    (lambda (ch)
@@ -7,19 +5,19 @@
      
 (define <line-comment>
   (let ((<end-of-line-comment>
-	 (new (*parser (char #\newline))
-	      (*parser <end-of-input>)
-	      (*disj 2)
-	      done)))
+   (new (*parser (char #\newline))
+        (*parser <end-of-input>)
+        (*disj 2)
+        done)))
     (new (*parser (char #\;))
-	 
-	 (*parser <any-char>)
-	 (*parser <end-of-line-comment>)
-	 *diff *star
+   
+   (*parser <any-char>)
+   (*parser <end-of-line-comment>)
+   *diff *star
 
-	 (*parser <end-of-line-comment>)
-	 (*caten 3)
-	 done)))
+   (*parser <end-of-line-comment>)
+   (*caten 3)
+   done)))
 
 (define <sexpr-comment>
   (new (*parser (word "#;"))
@@ -35,20 +33,20 @@
 
 (define <comment>
   (disj <line-comment>
-	<sexpr-comment>))
-	
+  <sexpr-comment>))
+  
 (define <comment-infix>
   (disj <line-comment>
-	<infix-comment>))
+  <infix-comment>))
 
 (define <skip>
   (disj <comment>
-	<whitespace>))
-	
+  <whitespace>))
+  
 (define <skip-infix>
   (disj <comment-infix>
-	<whitespace>))
-	
+  <whitespace>))
+  
 (define times-4
   (lambda (<p>)
     (disj (times <p> 4) (times <p> 3) (times <p> 2) (times <p> 1))
@@ -58,47 +56,47 @@
   (lambda (<wrapper>)
     (lambda (<p>)
       (new (*parser <wrapper>)
-	   (*parser <p>)
-	   (*parser <wrapper>)
-	   (*caten 3)
-	   (*pack-with
-	    (lambda (_left e _right) e))
-	   done))))
+     (*parser <p>)
+     (*parser <wrapper>)
+     (*caten 3)
+     (*pack-with
+      (lambda (_left e _right) e))
+     done))))
 
 (define ^<skipped*> (^^<wrapped> (star <skip>)))
 
 (define ^<skipped-infix*> (^^<wrapped> (star <skip-infix>)))
 
 (define <Boolean>
-	(new    (*parser (char #\#))
-	        (*parser (char-ci #\t))
-	        (*caten 2)
-	        (*parser (char #\#))
-	        (*parser (char-ci #\f))
-	        (*caten 2)
-		(*disj 2)
-		(*pack-with 
-		  (lambda (a b)
-		    (if (or (eq? b #\t) (eq? b #\T)) #t #f)))
+  (new    (*parser (char #\#))
+          (*parser (char-ci #\t))
+          (*caten 2)
+          (*parser (char #\#))
+          (*parser (char-ci #\f))
+          (*caten 2)
+    (*disj 2)
+    (*pack-with 
+      (lambda (a b)
+        (if (or (eq? b #\t) (eq? b #\T)) #t #f)))
         done))
-
+       
 (define <CharPrefix>
       (new     (*parser (char #\#))
                (*parser (char #\\))
                (*caten 2)
        done))
-
+       
 (define <VisibleSimpleChar> (range #\! #\xff))
 
 (define <NamedChar>
-	(new    (*parser (word-ci "lambda"))
-	        (*parser (word-ci "newline"))
+  (new    (*parser (word-ci "lambda"))
+          (*parser (word-ci "newline"))
             (*parser (word-ci "nul"))
             (*parser (word-ci "page")) 
-	        (*parser (word-ci "return"))
-	        (*parser (word-ci "space"))
-	        (*parser (word-ci "tab"))
-		(*disj 7) 
+          (*parser (word-ci "return"))
+          (*parser (word-ci "space"))
+          (*parser (word-ci "tab"))
+    (*disj 7) 
                 (*pack
                   (lambda (a)
                     (cond ((equal? (list->string a) "lambda") #\x03bb)
@@ -109,31 +107,24 @@
                           ((equal? (list->string a) "space") #\space)
                           ((equal? (list->string a) "tab") #\tab)
                           (else ("error")))))
-	     done))
-
-  (define <HexChar>
-	(new    (*parser (range #\0 #\9))
-	        (*parser (range #\a #\f))
-		    (*disj 2) 
-	     done))
-
-  (define times-4
-  (lambda (<p>)
-    (disj (times <p> 4) (times <p> 3) (times <p> 2) (times <p> 1))
-  ))
-
-
-  (define <HexUnicodeChar>
-	(new    (*parser (char-ci #\x))
-	        (*parser (times-4 <HexChar>))
-		    (*caten 2)
-		    (*parser <HexChar>)
+       done))
+       
+(define <HexChar>
+  (new    (*parser (range #\0 #\9))
+          (*parser (range #\a #\f))
+        (*disj 2) 
+       done))
+       
+(define <HexUnicodeChar>
+  (new    (*parser (char-ci #\x))
+          (*parser (times-4 <HexChar>))
+        (*caten 2)
+        (*parser <HexChar>)
             *not-followed-by
-		    (*pack-with (lambda (a b)
-		       (integer->char (string->number (list->string b) 16))))
-	     done))
-
-	     
+        (*pack-with (lambda (a b)
+           (integer->char (string->number (list->string b) 16))))
+       done))
+       
 (define <SymbolChar>
         (new    (*parser (range #\0 #\9))
                 (*parser (range #\a #\z))
@@ -152,166 +143,118 @@
                 (*parser (char #\/))
                 (*parser (char #\:))
                 (*disj 16)
-        done))	    
+        done))      
 
 (define <Char>
-	(new    (*parser <CharPrefix>)
+  (new    (*parser <CharPrefix>)
             (*parser <NamedChar>)
             (*parser <HexUnicodeChar>)
-	        (*parser <VisibleSimpleChar>)
-	        ;;(*parser <HexChar>)
-            ;;*not-followed-by
+          (*parser <VisibleSimpleChar>)
+          (*parser <HexChar>)
+            *not-followed-by
             (*disj 3)
             (*caten 2)
             (*pack-with (lambda (a b) b))
-	     done))
-	     
+       done))
+       
 (define <Natural>
-	(new    (*parser (range #\0 #\9)) *plus
-	        (*pack (lambda (a)
-	            (string->number (list->string a))))
+  (new    (*parser (range #\0 #\9)) *plus
+          (*pack (lambda (a)
+              (string->number (list->string a))))
          done))
-	     
+       
 (define <Integer>
-	(new    (*parser (char #\+))
+  (new    (*parser (char #\+))
             (*parser (char #\-))
-		    (*disj 2)
-		    (*parser <Natural>)
-		    (*caten 2)
-		    (*pack-with (lambda (a b)
-		       (if (equal? a #\+) b (- b))))
-		    (*parser <Natural>)
-		    (*disj 2)
-	     done))
-	     
+        (*disj 2)
+        (*parser <Natural>)
+        (*caten 2)
+        (*pack-with (lambda (a b)
+           (if (equal? a #\+) b (- b))))
+        (*parser <Natural>)
+        (*disj 2)
+       done))
+       
 (define <Fraction>
-	(new    (*parser <Integer>)
-	        (*parser (char #\/))
-		    (*parser <Natural>)
-		    (*caten 3)
-		    (*pack-with (lambda (a b c)
-		        (/ a c)))
-	     done))
+  (new    (*parser <Integer>)
+          (*parser (char #\/))
+        (*parser <Natural>)
+        (*caten 3)
+        (*pack-with (lambda (a b c)
+            (/ a c)))
+       done))
 
 (define <Number>
-	(new   (*parser <Fraction>) 
-	       (*parser <Integer>)
-	       (*disj 2) 
-	       (*parser <SymbolChar>)
-	       (*parser <Natural>)
-	       *diff
-	       *not-followed-by
-	     done))
-
-
-(define <StringLiteralChar> 
-	(new  (*parser <any-char>)
-		   (*parser (char #\\))
-	*diff
-         done))
-
+  (new   (*parser <Fraction>) 
+         (*parser <Integer>)
+         (*disj 2) 
+         (*parser <SymbolChar>)
+         (*parser <Natural>)
+         *diff
+         *not-followed-by
+       done))
+       
+(define <StringVisibleChar> (diff <any-char> (char #\\)))
+       
 (define <StringMetaChar>
-	(new    (*parser (char #\\)) 
-	        (*parser (char #\\)) 
-		    (*parser (char #\"))
-		    (*parser (char-ci #\t))
-		    (*parser (char-ci #\f))
-		    (*parser (char-ci #\n))
+  (new    (*parser (char #\\)) 
+          (*parser (char #\\)) 
+        (*parser (char #\"))
+        (*parser (char-ci #\t))
+        (*parser (char-ci #\f))
+        (*parser (char-ci #\n))
             (*parser (char-ci #\r))
-		    (*disj 6)
-		    (*caten 2)
-		    (*pack-with (lambda (a b)
-		         (cond ((equal? b #\\) #\\)
-		               ((equal? b #\") #\")
-		               ((or (equal? b #\t) (equal? b #\T)) #\tab)
-		               ((or (equal? b #\f) (equal? b #\F)) #\xc)
-		               ((or (equal? b #\n) (equal? b #\N)) #\xa)
-		               ((or (equal? b #\r) (equal? b #\R)) #\xd))))
-	     done))
+        (*disj 6)
+        (*caten 2)
+        (*pack-with (lambda (a b)
+             (cond ((equal? b #\\) #\\)
+                   ((equal? b #\") #\")
+                   ((or (equal? b #\t) (equal? b #\T)) #\tab)
+                   ((or (equal? b #\f) (equal? b #\F)) #\xc)
+                   ((or (equal? b #\n) (equal? b #\N)) #\xa)
+                   ((or (equal? b #\r) (equal? b #\R)) #\xd))))
+       done))
 
 (define <StringHexChar>
-	(new    (*parser (char #\\))
+  (new    (*parser (char #\\))
             (*parser (char-ci #\x))
             (*caten 2)
-		    (*parser  <HexChar>)
-		    *star
-		    (*parser (char #\;))
+        (*parser (times-4 <HexChar>))
+        (*parser (char #\;))
             (*caten 3)
             (*pack-with (lambda (a b c)
                 (integer->char (string->number (list->string b) 16))))
-	     done))
-
+       done))
+       
 (define <StringChar>
         (new    (*parser <StringHexChar>)
                 (*parser <StringMetaChar>)
-                (*parser <StringLiteralChar>)
+                (*parser <StringVisibleChar>)
                 (*disj 3)
              done))
-
+       
 (define <String>
-	(new    (*parser (char #\"))  
-		    (*parser <StringChar>) (*parser (char #\")) *diff *star
-		    (*parser (char #\"))
-		    (*caten 3) 
-		    (*pack-with (lambda (a b c)
-		       (list->string b)))
-	     done))	
-
+  (new    (*parser (char #\"))  
+        (*parser <StringChar>) (*parser (char #\")) *diff *star
+        (*parser (char #\"))
+        (*caten 3) 
+        (*pack-with (lambda (a b c)
+           (list->string b)))
+       done)) 
+       
+       
 (define <Symbol>
         (new    (*parser <SymbolChar>) *plus
                 (*pack (lambda (a)
                     (string->symbol (string-downcase (list->string a)))))
         done))
-
+       
 (define <ProperList>
         (new    (*parser (char #\())
                 (*delayed (lambda () <sexpr>)) *star
                 (*parser (char #\)))
                 (*caten 3)
                 (*pack-with (lambda (a b c) b))
-        done))
-
-(define <Quoted>
-        (new    (*parser (char #\'))
-                (*delayed (lambda()  <sexpr>))
-                (*caten 2)
-                (*pack-with (lambda (a b)
-                    `',b))
-        done))
-
-(define <QuasiQuoted>
-        (new    (*parser (char #\`))
-                (*delayed (lambda()  <sexpr>))
-                (*caten 2)
-                (*pack-with (lambda (a b)
-                     (list 'quasiquote b)))
-        done))
-
-(define <Unquoted>
-        (new    (*parser (char #\,))
-                (*delayed (lambda()  <sexpr>))
-                (*caten 2)
-                (*pack-with (lambda (a b)
-                     (list 'unquote b)))                
-        done))
-
-(define <UnquotedAndSpliced>
-        (new    (*parser (char #\,))
-                (*parser (char #\@))
-                (*delayed (lambda()  <sexpr>))
-                (*caten 3)
-                (*pack-with (lambda (a b c)
-                     (list 'unquote-splicing c)))
-        done))
-
-(define <Vector>
-        (new    (*parser (char #\#))
-                (*parser (char #\())
-                (*delayed (lambda () <sexpr>)) *star
-                (*parser (char #\)))
-                (*caten 4)
-                (*pack-with (lambda (a b c d)
-                    (apply vector c)))
         done))
 
 (define <ImproperList>
@@ -325,28 +268,50 @@
                     `(,@b . ,d))
                         )
         done))
-
-(define <CBNameSyntax1> 
-           (new (*parser (char #\@))
+        
+(define <Vector>
+        (new    (*parser (char #\#))
+                (*parser (char #\())
+                (*delayed (lambda () <sexpr>)) *star
+                (*parser (char #\)))
+                (*caten 4)
+                (*pack-with (lambda (a b c d)
+                    (apply vector c)))
+        done))
+        
+(define <Quoted>
+        (new    (*parser (char #\'))
                 (*delayed (lambda()  <sexpr>))
                 (*caten 2)
                 (*pack-with (lambda (a b)
-                     (list 'cbname b)))
-        done)) 
-(define <CBNameSyntax2>
- 		  (new    (*parser (char #\{))
-                (*delayed (lambda () <sexpr>)) 
-                (*parser (char #\}))
+                    `',b))
+        done))
+        
+(define <QuasiQuoted>
+        (new    (*parser (char #\`))
+                (*delayed (lambda()  <sexpr>))
+                (*caten 2)
+                (*pack-with (lambda (a b)
+                     (list 'quasiquote b)))
+        done))
+        
+(define <Unquoted>
+        (new    (*parser (char #\,))
+                (*delayed (lambda()  <sexpr>))
+                (*caten 2)
+                (*pack-with (lambda (a b)
+                     (list 'unquote b)))                
+        done))        
+        
+(define <UnquotedAndSpliced>
+        (new    (*parser (char #\,))
+                (*parser (char #\@))
+                (*delayed (lambda()  <sexpr>))
                 (*caten 3)
-                (*pack-with (lambda (a b c) (list 'cbname b) ))
-        done))                 
-
-(define <CBName> 
-	    (new (*parser <CBNameSyntax1>)
-	          (*parser <CBNameSyntax2>) 
-	           (*disj 2) 
-	           done))
-           
+                (*pack-with (lambda (a b c)
+                     (list 'unquote-splicing c)))
+        done))
+        
 (define last-elem (lambda (l) (car (reverse l))))
 
 (define remove-last-elem (lambda (l) (reverse (cdr (reverse l)))))
@@ -539,13 +504,13 @@
         done))
         
 (define <InfixNumber>
-	(new   (*parser <Fraction>) 
-	       (*parser <Integer>)
-	       (*disj 2) 
-	       (*parser <InfixSymbol>)
-	       (*parser <Natural>)
-	       *diff *not-followed-by
-	     done))
+  (new   (*parser <Fraction>) 
+         (*parser <Integer>)
+         (*disj 2) 
+         (*parser <InfixSymbol>)
+         (*parser <Natural>)
+         *diff *not-followed-by
+       done))
         
 (define <InfixExtension>
         (new    (*parser <InfixPrefixExtensionPrefix>)
@@ -558,7 +523,7 @@
 (define <sexpr> 
    (let* ((parsers (list <Boolean> <Char> <Number> <Symbol> <String> <ProperList>
                     <ImproperList> <Vector> <Quoted> <QuasiQuoted> <Unquoted>
-                    <UnquotedAndSpliced> <InfixExtension> <CBName>))
+                    <UnquotedAndSpliced> <InfixExtension>))
           (parsers-skipped (map ^<skipped*> parsers)))
          (apply disj parsers-skipped)
     ))
