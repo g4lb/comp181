@@ -158,10 +158,10 @@
 	(new    (*parser <CharPrefix>)
             (*parser <NamedChar>)
             (*parser <HexUnicodeChar>)
-	        (*parser <VisibleSimpleChar>)
-	        (*parser <HexChar>)
-            *not-followed-by
+	         (*parser <VisibleSimpleChar>)
             (*disj 3)
+            (*parser <any-char>)
+            *not-followed-by
             (*caten 2)
             (*pack-with (lambda (a b) b))
 	     done))
@@ -220,7 +220,7 @@
             (*parser (char-ci #\r))
 		    (*disj 6)
 		    (*caten 2)
-		    (*pack-with (lambda (a b)
+		    (*pack-with (lambda (a b) 
 		         (cond ((equal? b #\\) #\\)
 		               ((equal? b #\") #\")
 		               ((or (equal? b #\t) (equal? b #\T)) #\tab)
