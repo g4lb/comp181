@@ -101,13 +101,13 @@
 		(*disj 7) 
                 (*pack
                   (lambda (a)
-                    (cond ((equal? (list->string a) "lambda") #\x03bb)
-                          ((equal? (list->string a) "newline") #\newline)
-                          ((equal? (list->string a) "nul") #\nul)
-                          ((equal? (list->string a) "page") #\page)
-                          ((equal? (list->string a) "return") #\return)
-                          ((equal? (list->string a) "space") #\space)
-                          ((equal? (list->string a) "tab") #\tab)
+                    (cond ((equal? (string-downcase (list->string a)) "lambda") #\x03bb)
+                          ((equal? (string-downcase(list->string a)) "newline") #\newline)
+                          ((equal? (string-downcase(list->string a)) "nul") #\nul)
+                          ((equal? (string-downcase(list->string a)) "page") #\page)
+                          ((equal? (string-downcase(list->string a)) "return") #\return)
+                          ((equal? (string-downcase(list->string a)) "space") #\space)
+                          ((equal? (string-downcase(list->string a)) "tab") #\tab)
                           (else ("error")))))
 	     done))
 
@@ -159,8 +159,8 @@
             (*parser <NamedChar>)
             (*parser <HexUnicodeChar>)
 	        (*parser <VisibleSimpleChar>)
-	        ;;(*parser <HexChar>)
-            ;;*not-followed-by
+	        (*parser <HexChar>)
+            *not-followed-by
             (*disj 3)
             (*caten 2)
             (*pack-with (lambda (a b) b))
@@ -264,7 +264,7 @@
         done))
 
 (define <ProperList>
-        (new    (*parser (char #\())
+        (new    (*parser (char #\())        	    
                 (*delayed (lambda () <sexpr>)) *star
                 (*parser (char #\)))
                 (*caten 3)
@@ -515,7 +515,8 @@
         done))
         
 (define <InfixLast>
-        (new    (*parser (^<skipped-infix*> <InfixSexprEscape>))
+        (new    
+        	    (*parser (^<skipped-infix*> <InfixSexprEscape>))
                 (*parser (^<skipped-infix*> <InfixParen>))
                 (*delayed (lambda() (^<skipped-infix*> <InfixNumber>)))
                 (*parser (^<skipped-infix*> <InfixNeg>))
