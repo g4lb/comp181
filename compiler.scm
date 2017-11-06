@@ -105,7 +105,7 @@
                           ((equal? (string-downcase(list->string a)) "newline") #\newline)
                           ((equal? (string-downcase(list->string a)) "nul") #\nul)
                           ((equal? (string-downcase(list->string a)) "page") #\page)
-                          ((equal? (string-downcase(list->string a)) "return") #\return)
+                          ((equal? (string-downcase(list->string a)) "return") #\x3)
                           ((equal? (string-downcase(list->string a)) "space") #\space)
                           ((equal? (string-downcase(list->string a)) "tab") #\tab)
                           (else ("error")))))
@@ -207,6 +207,8 @@
 (define <StringLiteralChar> 
 	(new  (*parser <any-char>)
 		   (*parser (char #\\))
+       (*parser (char #\"))
+      (*disj 2) 
 	*diff
          done))
 
